@@ -1,0 +1,40 @@
+#use "topfind.camlp5";;
+#require "findlib.internal";;
+#require "compiler-libs.common" ;;
+#require "ounit2";;
+#require "fmt";;
+#require "rresult";;
+#require "pcre";;
+#require "bos";;
+#require "str";;
+
+(*
+#predicates "syntax,camlp5hol" ;;
+*)
+#require "pa_hol_syntax";;
+#require "pa_ppx.testutils";;
+#require "pa_ppx.base";;
+
+let pp_token_stream strm =
+  let l = Stream.npeek !Toploop.max_printer_depth strm in
+  let rec trim_eoi = function
+    ("EOI",_ as x)::_ -> [x]
+  | h::t -> h::(trim_eoi t)
+  | [] -> []
+  in 
+  Fmt.(pf stdout "<strm<[%a]>>" (list ~sep:comma (parens (pair ~sep:comma (quote string) (quote string)))) (trim_eoi l))
+;;
+#install_printer pp_token_stream ;;
+
+print_string "================ START ================\n";; flush stdout ;;
+
+open Pa_ppx_testutils.Papr_util ;;
+open Pa_ppx_testutils.Testutil2 ;;
+
+
+(*
+;;; Local Variables: ***
+;;; mode:tuareg ***
+;;; End: ***
+
+*)

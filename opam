@@ -1,0 +1,49 @@
+version: "0.01"
+synopsis: "Weak-tea event loop"
+description:
+"""
+This package provides a weak event-loop 
+
+"""
+opam-version: "2.0"
+maintainer: "Chet Murthy <chetsky@gmail.com>"
+authors: ["Chet Murthy"]
+homepage: "https://github.com/chetmurthy/event"
+license: "BSD-3-Clause"
+bug-reports: "https://github.com/chetmurthy/event/issues"
+dev-repo: "git+https://github.com/chetmurthy/event.git"
+doc: "https://github.com/chetmurthy/event/doc"
+
+depends: [
+  "ocaml"       
+  "not-ocamlfind" { >= "0.01" }
+  "fmt"
+]
+depexts: [
+  [
+    "libstring-shellquote-perl"
+    "libipc-system-simple-perl"
+  ] {os-family = "debian"}
+  [
+    "perl-string-shellquote"
+    "perl-ipc-system-simple"
+  ] {os-distribution = "alpine"}
+  [
+    "perl-String-ShellQuote"
+    "perl-IPC-System-Simple"
+  ] {os-distribution = "centos"}
+  [
+    "perl-String-ShellQuote"
+    "perl-IPC-System-Simple"
+  ] {os-family = "suse"}
+  [
+    "perl-String-ShellQuote"
+    "perl-IPC-System-Simple"
+  ] {os-family = "fedora"}
+]
+
+build: [
+  [make "sys"]
+  [make "test"] {with-test}
+]
+install: [make "install"]
