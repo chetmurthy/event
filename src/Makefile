@@ -13,7 +13,7 @@ OCAMLFIND=$(LAUNCH) ocamlfind
 NOT_OCAMLFIND=$(LAUNCH) not-ocamlfind
 PACKAGES = unix,fmt
 ML=\
-	event.ml
+	event.ml iBuffer.ml
 
 MLI=\
 	event.mli

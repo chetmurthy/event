@@ -11,7 +11,7 @@ print <<"EOF";
 version = "$Version::version"
 description = "event"
 requires = "unix,fmt"
-archive(byte) = "event.cmo"
-archive(native) = "event.cmx"
+archive(byte) = "event.cmo iBuffer.cmo"
+archive(native) = "event.cmx iBuffer.cmx"
 
 EOF
