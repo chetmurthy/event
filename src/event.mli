@@ -3,6 +3,45 @@ val spawn : string -> string array -> int * Unix.file_descr * Unix.file_descr
 type handler_t = Unix.file_descr -> unit
 type handler_list_t
 
+module Loop :
+  sig
+    type t = {
+      in_handlers : handler_list_t;
+      out_handlers : handler_list_t;
+      exn_handlers : handler_list_t;
+      mutable pid_handlers :
+        (int * (int -> Unix.process_status -> unit)) list;
+      mutable alarms : (int * (float * (int -> unit))) list;
+      mutable exit_code : int;
+    }
+    val create : unit -> t
+    val exit : t -> int -> unit
+    val in_handler :
+      t -> Unix.file_descr -> (Unix.file_descr -> unit) -> unit
+    val out_handler :
+      t -> Unix.file_descr -> (Unix.file_descr -> unit) -> unit
+    val exn_handler :
+      t -> Unix.file_descr -> (Unix.file_descr -> unit) -> unit
+    val in_cancel : t -> Unix.file_descr -> unit
+    val out_cancel : t -> Unix.file_descr -> unit
+    val exn_cancel : t -> Unix.file_descr -> unit
+    val fd_cancel : t -> Unix.file_descr -> unit
+    val fd_handlers :
+      t ->
+      Unix.file_descr ->
+      (Unix.file_descr -> unit) option * (Unix.file_descr -> unit) option *
+      (Unix.file_descr -> unit) option
+    val pid_handler :
+      t -> int -> (int -> Unix.process_status -> unit) -> unit
+    val pid_cancel : t -> int -> unit
+    val pid_cancel_all : t -> unit
+    val alarm : t -> float -> (int -> unit) -> int
+    val handle_pid : t -> int * Unix.process_status -> unit
+    val handle_deaths : t -> unit
+    val loop : t -> unit
+  end
+
+
 class event_loop_t :
   object
     method loop : unit

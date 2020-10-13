@@ -1,3 +1,5 @@
+open Event
+
   type t = {
     fd : Unix.file_descr ;
     buffer : bytes ;
@@ -17,9 +19,9 @@
       ibuf.ofs <- 1 + ibuf.ofs ;
       kont c
     else
-      loop#in_handler ibuf.fd 
+      Loop.in_handler loop ibuf.fd 
         (fun fd ->
-           loop#in_cancel ibuf.fd ;
+           Loop.in_cancel loop ibuf.fd ;
            let nread = refill ibuf in
            if nread = 0 then kont (-1)
            else begin

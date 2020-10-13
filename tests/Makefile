@@ -16,10 +16,13 @@ NOT_OCAMLFIND=$(LAUNCH) not-ocamlfind
 MKCAMLP5=$(LAUNCH) mkcamlp5
 PACKAGES := event
 
-all: test_read_file.byte test_read_file.opt
+all: \
+	test_read_file.byte test_read_file.opt \
+
 
 test: all
 	./test_read_file.opt /etc/passwd 4096 1024000
+
 
 % : %.byte
 	mkdir -p _build && ./$<

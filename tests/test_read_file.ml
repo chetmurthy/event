@@ -4,9 +4,9 @@ open Event
 let buffer = Bytes.create 1024 ;;
 
 let read_char loop fd kont =
-  loop#in_handler fd
+  Loop.in_handler loop fd
     (fun fd ->
-       loop#in_cancel fd ;
+       Loop.in_cancel loop fd ;
        let nread = Unix.read fd buffer 0 1 in
        if nread = 0 then kont (-1)
        else kont (Char.code (Bytes.get buffer 0)))
@@ -27,7 +27,7 @@ let main() =
   let fname = Sys.argv.(1) in
   let bufsiz = int_of_string Sys.argv.(2) in
   let toread = int_of_string Sys.argv.(3) in
-  let loop = new event_loop_t in
+  let loop = Loop.create () in
   let fd = Unix.openfile fname [Unix.O_RDONLY] 0o755 in
   let ibuf = IBuffer.create ~bufsiz fd in
   Unix.set_nonblock fd ;
@@ -35,8 +35,8 @@ let main() =
   readn loop ibuf toread (fun unread ->
       let etime = Unix.gettimeofday() in
       report  (toread-unread) (etime -. stime) ;
-      loop#exit 0) ;
-  loop#loop
+      Loop.exit loop 0) ;
+  Loop.loop loop
 
 let _ = 
 if not !Sys.interactive then
