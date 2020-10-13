@@ -14,14 +14,15 @@ F=/dev/zero
 N=1048576
 NLONG=10485760
 NLONGLONG=104857600
+BUFLEN=65536
 test: all
-	./async_read_file.opt $F 4096 $(NLONG)
+	./async_read_file.opt $F $(BUFLEN) $(NLONG)
 	./async_read_file.opt $F 16 $N
 	./async_read_buffer.opt $F $(NLONGLONG)
-	./lwt_read_file.opt $F 4096 $(NLONGLONG)
+	./lwt_read_file.opt $F $(BUFLEN) $(NLONGLONG)
 	./lwt_read_file.opt $F 16 $(NLONG)
 	./lwt_read_buffer.opt $F $(NLONGLONG)
-	../tests/test_read_file.opt $F 4096 $(NLONGLONG)
+	../tests/test_read_file.opt $F $(BUFLEN) $(NLONGLONG)
 	../tests/test_read_file.opt $F 16 $(NLONGLONG)
 	./direct_read_file.opt $F $(NLONGLONG)
 	./direct_read_buffer.opt $F $(NLONGLONG)
