@@ -7,6 +7,10 @@ let rec readn n =
     Lwt.bind (Lwt.return (Bytes.get buffer (n mod 1024)))
       (fun _ -> readn (n-1))
 
+let report nread dur =
+  let persec = Float.to_int ((Float.of_int nread) /. dur) in
+  Fmt.(pf stdout "%a/sec: %d read in %f secs\n%!" bi_byte_size persec nread dur)
+
 let bench f n =
   let stime = Unix.gettimeofday() in
   Lwt.bind (Lwt.return ())
@@ -14,7 +18,7 @@ let bench f n =
        Lwt.bind (readn n)
          (fun unread ->
            let etime = Unix.gettimeofday() in
-           Stdlib.Printf.printf "%d read in %f secs\n%!" (n-unread) (etime -. stime) ;
+           report (n-unread) (etime -. stime) ;
            Lwt.return ()
          )
     )

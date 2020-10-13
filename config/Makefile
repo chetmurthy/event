@@ -8,6 +8,7 @@ NOT_OCAMLFIND=not-ocamlfind
 OCAMLTOPLEVEL=ocaml
 INCLUDES=
 OCAMLCFLAGS=$(INCLUDES)
+OCAMLOPTFLAGS=
 PACKAGES=
 
 export PERL5LIB := $(TOP):$(PERL5LIB)
@@ -21,7 +22,7 @@ top: all
 	$(OCAMLFIND) ocamlc $(DEBUG) $(WARNERR)  $(OCAMLCFLAGS) -package $(PACKAGES) -c $<
 
 .ml.cmx:
-	$(OCAMLFIND) ocamlopt $(DEBUG) $(WARNERR)  $(OCAMLCFLAGS) -package $(PACKAGES) -c $<
+	$(OCAMLFIND) ocamlopt $(DEBUG) $(WARNERR)  $(OCAMLCFLAGS) $(OCAMLOPTFLAGS) -package $(PACKAGES) -c $<
 
 .SUFFIXES: .cmo .cmi .ml .mli .cmx .cma .cmxa .cmt .cmti
 

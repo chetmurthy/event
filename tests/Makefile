@@ -2,7 +2,7 @@
 # Copyright (c) INRIA 2007-2017
 
 WD=$(shell pwd)
-TOP=$(WD)/..
+TOP=..
 include $(TOP)/config/Makefile
 
 PACKAGEPREFIX=
@@ -29,7 +29,7 @@ test_read_file.byte: test_read_file.cmo
 	-linkpkg -linkall $^ -o $@
 
 test_read_file.opt: test_read_file.cmx
-	$(OCAMLFIND) ocamlopt $(DEBUG) $(WARNERR) -package $(PACKAGES) \
+	$(OCAMLFIND) ocamlopt $(DEBUG) $(WARNERR) $(OCAMLOPTFLAGS) -package $(PACKAGES) \
 	-linkpkg -linkall $^ -o $@
 
 clean::

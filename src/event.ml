@@ -32,6 +32,129 @@ let del_fd hl fd =
   hl.l <- List.remove_assoc fd hl.l;
     hl.fds <- List.map fst hl.l
 
+module Loop = struct
+  type t = {
+    in_handlers : handler_list_t
+  ; out_handlers : handler_list_t
+  ; exn_handlers : handler_list_t 
+  ; mutable pid_handlers : (int * (int -> Unix.process_status -> unit)) list
+  ; mutable alarms : (int * (float * (int -> unit))) list
+  ; mutable exit_code : int
+  }
+
+  let create () = {
+    in_handlers = mk_handler_list()
+  ; out_handlers = mk_handler_list()
+  ; exn_handlers = mk_handler_list()
+
+  ; pid_handlers = []
+  ; alarms = []
+  ; exit_code = -1
+  }
+
+  let exit t code = t.exit_code <- code
+  let in_handler t fd f = add_fd t.in_handlers fd f
+  let out_handler t fd f = add_fd t.out_handlers fd f
+  let exn_handler t fd f = add_fd t.exn_handlers fd f
+
+  let in_cancel t fd = del_fd t.in_handlers fd
+  let out_cancel t fd = del_fd t.out_handlers fd
+  let exn_cancel t fd = del_fd t.exn_handlers fd
+
+  let fd_cancel t fd =
+    in_cancel t fd;
+    out_cancel t fd;
+    exn_cancel t fd
+
+  let fd_handlers t fd =
+    ((try Some(lookup_fd t.in_handlers fd) with Not_found -> None),
+     (try Some(lookup_fd t.out_handlers fd) with Not_found -> None),
+     (try Some(lookup_fd t.exn_handlers fd) with Not_found -> None))
+
+  let pid_handler t pid f = t.pid_handlers <- (pid,f)::t.pid_handlers
+  let pid_cancel t pid = t.pid_handlers <- List.remove_assoc pid t.pid_handlers
+  let pid_cancel_all t = t.pid_handlers <- []
+
+  let alarm it t (f: int -> unit) =
+  let n = next_token () in
+  let rec addrec = function
+      [] -> [(n,(t,f))]
+    | ((n0,(t0,f0)) as h)::tl when t0 < t ->
+	h::(addrec tl)
+    | l -> (n,(t,f))::l
+  in it.alarms <- addrec it.alarms;
+    n
+
+  let handle_pid t (pid,status) =
+    if not(List.mem_assoc pid t.pid_handlers) then
+      Fmt.(pf stderr "WARNING: [PID %d has no waiter]\n%!" pid)
+    else
+      let f = List.assoc pid t.pid_handlers in
+	pid_cancel t pid;
+	f pid status
+
+  let rec handle_deaths t =
+    match Unix.waitpid [Unix.WNOHANG] (-1) with
+	(0,_) -> ()
+      | x -> handle_pid t x; handle_deaths t
+
+  let loop t =
+    let _ : Sys.signal_behavior =
+      Sys.signal Sys.sigchld
+        (Sys.Signal_handle
+           (fun _ ->
+	      handle_deaths t)) in
+    let rec looprec () =
+      if t.exit_code <> -1 then t.exit_code else
+      let timeout =
+	match t.alarms with
+	    [] -> -1.0
+	  | (_,(t,_))::_ -> t -. Unix.gettimeofday() in
+
+      let ins = get_fds t.in_handlers in
+      let outs = get_fds t.out_handlers in
+      let exns = get_fds t.exn_handlers in
+      match (try Some (Unix.select ins outs exns timeout)
+	     with Unix.Unix_error((Unix.EAGAIN|Unix.EINTR), _, _) -> None) with
+	  None -> looprec()
+	| Some([],[],[]) ->
+	    assert (timeout >= 0.0);
+	    assert (t.alarms <> []); 
+	    let (n,(_,f))::tl = t.alarms
+	    in t.alarms <- tl;
+	      f n;
+	      looprec ()
+
+	| Some(i_active, o_active, e_active) ->
+	    let rec iter f = function
+		[] -> ()
+	      | a::l -> f a; iter f l
+	    in
+	      iter
+		(fun fd ->
+		   let f = lookup_fd t.in_handlers fd
+		   in f fd)
+		i_active;
+
+	      List.iter
+		(fun fd ->
+		   let f = lookup_fd t.out_handlers fd
+		   in f fd)
+		o_active;
+
+	      List.iter
+		(fun fd ->
+		   let f = lookup_fd t.exn_handlers fd
+		   in f fd)
+		e_active;
+
+	      looprec ()
+    in
+      looprec ();
+      ()
+  
+end
+
 class event_loop_t =
 
 object(self)

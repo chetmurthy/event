@@ -9,13 +9,17 @@ let rec readn n =
     Deferred.bind (Deferred.return (Bytes.get buffer (n mod 1024)))
       (fun _ -> readn (n-1))
 
+let report nread dur =
+  let persec = Float.to_int ((Float.of_int nread) /. dur) in
+  Fmt.(pf stdout "%a/sec: %d read in %f secs\n%!" bi_byte_size persec nread dur)
+
 let bench f n =
   let stime = Unix.gettimeofday() in
   Deferred.bind (Deferred.return ())
     (fun () -> Deferred.bind (readn n)
         (fun unread ->
            let etime = Unix.gettimeofday() in
-           Stdlib.Printf.printf "%d read in %f secs\n%!" (n-unread) (etime -. stime) ;
+           report (n-unread) (etime -. stime) ;
            Shutdown.exit 0
         ))
 ;;

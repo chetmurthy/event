@@ -19,6 +19,10 @@ let rec readn loop ib toread kont =
          if -1 = c then kont toread
          else readn loop ib (toread-1) kont)
 
+let report nread dur =
+  let persec = Float.to_int ((Float.of_int nread) /. dur) in
+  Fmt.(pf stdout "%a/sec: %d read in %f secs\n%!" bi_byte_size persec nread dur)
+
 let main() =
   let fname = Sys.argv.(1) in
   let bufsiz = int_of_string Sys.argv.(2) in
@@ -30,7 +34,7 @@ let main() =
   let stime = Unix.gettimeofday() in
   readn loop ibuf toread (fun unread ->
       let etime = Unix.gettimeofday() in
-      Printf.printf "%d read in %f secs\n%!" (toread-unread) (etime -. stime) ;
+      report  (toread-unread) (etime -. stime) ;
       loop#exit 0) ;
   loop#loop
 

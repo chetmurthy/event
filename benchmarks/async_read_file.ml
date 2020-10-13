@@ -8,13 +8,17 @@ let rec readn ic n =
       (function `Ok _ -> readn ic (n-1)
               | `Eof -> Deferred.return n)
 
+let report nread dur =
+  let persec = Float.to_int ((Float.of_int nread) /. dur) in
+  Fmt.(pf stdout "%a/sec: %d read in %f secs\n%!" bi_byte_size persec nread dur)
+
 let bench f ~buf_len n =
   let stime = Unix.gettimeofday() in
   Deferred.bind (Reader.open_file ~buf_len:buf_len f)
     (fun ic -> Deferred.bind (readn ic n)
         (fun unread ->
            let etime = Unix.gettimeofday() in
-           Stdlib.Printf.printf "%d read in %f secs\n%!" (n-unread) (etime -. stime) ;
+           report (n-unread) (etime -. stime) ;
            Shutdown.exit 0
         ))
 ;;
