@@ -19,11 +19,14 @@ PACKAGES := event
 all: \
 	test_read_file.byte test_read_file.opt \
 	test_read_buffer.byte test_read_buffer.opt \
+	test_ab.byte test_ab.opt \
 
 
 test: all
 	./test_read_file.opt /etc/passwd 4096 1024000
 	./test_read_buffer.opt /etc/passwd 4096 1024000
+	./test_ab.opt direct 1024000
+	./test_ab.opt kont 1024000
 
 
 % : %.byte
@@ -42,6 +45,14 @@ test_read_buffer.byte: test_read_buffer.cmo
 	-linkpkg -linkall $^ -o $@
 
 test_read_buffer.opt: test_read_buffer.cmx
+	$(OCAMLFIND) ocamlopt $(DEBUG) $(WARNERR) $(OCAMLOPTFLAGS) -package $(PACKAGES) \
+	-linkpkg -linkall $^ -o $@
+
+test_ab.byte: test_ab.cmo
+	$(OCAMLFIND) ocamlc $(DEBUG) $(WARNERR) -package $(PACKAGES) \
+	-linkpkg -linkall $^ -o $@
+
+test_ab.opt: test_ab.cmx
 	$(OCAMLFIND) ocamlopt $(DEBUG) $(WARNERR) $(OCAMLOPTFLAGS) -package $(PACKAGES) \
 	-linkpkg -linkall $^ -o $@
 
