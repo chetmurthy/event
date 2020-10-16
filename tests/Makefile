@@ -25,8 +25,8 @@ all: \
 test: all
 	./test_read_file.opt /etc/passwd 4096 1024000
 	./test_read_buffer.opt /etc/passwd 4096 1024000
-	./test_ab.opt direct 1024000
-	./test_ab.opt kont 1024000
+	./test_ab.opt direct 102400000
+	./test_ab.opt kont 102400000
 
 
 % : %.byte
