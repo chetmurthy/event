@@ -3,33 +3,37 @@ open Event
 
 let buffer = Bytes.create 1024 ;;
 
-
+let upd a b = a lor b
+(*
+let upd a b = 0
+*)
 module KontMode = struct
 
 module Kont = struct
+  type 'a comp = ('a -> unit) -> unit
   let return v k = k v
-  let bind _N _M = fun kont ->
+  let bind (_N : 'a comp) (_M : 'a -> 'b comp) = fun kont ->
     _N (fun v -> _M v kont)
 end
 
-let read1 n =
-  Kont.return (Bytes.get buffer (n mod 1024))
+let read1 n : int Kont.comp =
+  Kont.return (Char.code (Bytes.get buffer (n mod 1024)))
 
-let rec readn n =
+let rec readn acc n : int Kont.comp =
   if n = 0 then Kont.return n
   else
-    Kont.bind (Kont.return (Bytes.get buffer (n mod 1024)))
-      (fun _ -> readn (n-1))
+    Kont.bind (read1 n)
+      (fun c kont -> readn (upd c acc) (n-1) kont)
 
 end
 
 module DirectMode = struct
 
-let rec readn n kont =
+let rec readn acc n kont =
   if n = 0 then kont n
   else
-    let _ = Bytes.get buffer (n mod 1024) in
-    readn (n-1) kont
+    let c = Char.code (Bytes.get buffer (n mod 1024)) in
+    readn (upd c acc) (n-1) kont
 
 end
 
@@ -42,11 +46,11 @@ let main() =
   let toread = int_of_string Sys.argv.(2) in
   let stime = Unix.gettimeofday() in
   if mode = "direct" then
-  DirectMode.readn toread (fun unread ->
+  DirectMode.readn 0 toread (fun unread ->
       let etime = Unix.gettimeofday() in
       report  (toread-unread) (etime -. stime))
   else
-  KontMode.readn toread (fun unread ->
+  KontMode.readn 0 toread (fun unread ->
       let etime = Unix.gettimeofday() in
       report  (toread-unread) (etime -. stime))
 
