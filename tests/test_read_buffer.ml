@@ -20,7 +20,7 @@ let rec readn n kont =
 
 let report nread dur =
   let persec = Float.to_int ((Float.of_int nread) /. dur) in
-  Fmt.(pf stdout "%a/sec: %d read in %f secs\n%!" bi_byte_size persec nread dur)
+  Fmt.(pf stdout "%a/sec: %d read in %f secs\n\n%!" bi_byte_size persec nread dur)
 
 let main() =
   let fname = Sys.argv.(1) in
