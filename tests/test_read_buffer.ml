@@ -9,14 +9,14 @@ module Kont = struct
     _N (fun v -> _M v kont)
 end
 
-let read1 n =
-  Kont.return (Bytes.get buffer (n mod 1024))
+let read1 n kont =
+  Kont.return (Bytes.get buffer (n mod 1024)) kont
 
-let rec readn n =
-  if n = 0 then Kont.return n
+let rec readn n kont =
+  if n = 0 then Kont.return n kont
   else
     Kont.bind (Kont.return (Bytes.get buffer (n mod 1024)))
-      (fun _ -> readn (n-1))
+      (fun _ -> readn (n-1)) kont
 
 let report nread dur =
   let persec = Float.to_int ((Float.of_int nread) /. dur) in
