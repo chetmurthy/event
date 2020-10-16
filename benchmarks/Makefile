@@ -26,6 +26,7 @@ test: all
 	../tests/test_read_file.opt $F 16 $(NLONGLONG)
 	./direct_read_file.opt $F $(NLONGLONG)
 	./direct_read_buffer.opt $F $(NLONGLONG)
+	../tests/test_read_buffer.opt $F $(BUFLEN) $(NLONGLONG)
 
 async_read_file.opt: async_read_file.ml
 	ocamlfind ocamlopt -thread -package async,fmt $(OCAMLOPTFLAGS) -linkall -linkpkg async_read_file.ml -o async_read_file.opt
