@@ -27,6 +27,10 @@ let rec readn acc n : int Kont.comp =
     Kont.bind (read1 n)
       (fun c kont -> readn (upd c acc) (n-1) kont) kont
 
+
+let doit toread kont =
+  readn 0 toread kont
+
 end
 
 module DirectMode = struct
@@ -36,6 +40,9 @@ let rec readn acc n kont =
   else
     let c = Char.code (Bytes.get buffer (n mod 1024)) in
     readn (upd c acc) (n-1) kont
+
+let doit toread kont =
+  readn 0 toread kont
 
 end
 
@@ -48,11 +55,11 @@ let main() =
   let toread = int_of_string Sys.argv.(2) in
   let stime = Unix.gettimeofday() in
   if mode = "direct" then
-    DirectMode.readn 0 toread (fun unread ->
+    DirectMode.doit toread (fun unread ->
         let etime = Unix.gettimeofday() in
         report  (toread-unread) (etime -. stime))
   else if mode = "kont" then
-    KontMode.readn 0 toread (fun unread ->
+    KontMode.doit toread (fun unread ->
         let etime = Unix.gettimeofday() in
         report  (toread-unread) (etime -. stime))
   else ()
