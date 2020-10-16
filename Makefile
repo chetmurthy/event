@@ -10,7 +10,8 @@ RM=rm
 
 SYSDIRS= src
 
-TESTDIRS= tests benchmarks
+TESTDIRS= tests
+BENCHDIRS=  benchmarks
 
 
 all: sys
@@ -23,6 +24,9 @@ plugins:
 
 test: all
 	set -e; for i in $(TESTDIRS); do cd $$i; $(MAKE) test; cd ..; done
+
+bench: all
+	set -e; for i in $(BENCHDIRS); do cd $$i; $(MAKE) test; cd ..; done
 
 install: sys
 	$(OCAMLFIND) remove event || true
