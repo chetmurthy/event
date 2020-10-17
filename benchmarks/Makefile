@@ -16,17 +16,22 @@ NLONG=10485760
 NLONGLONG=104857600
 BUFLEN=65536
 test: all
+	@echo "==== read file buffer $(BUFLEN) ===="
 	./async_read_file.opt $F $(BUFLEN) $(NLONG)
-	./async_read_file.opt $F 16 $N
-	./async_read_buffer.opt $F $(NLONGLONG)
 	./lwt_read_file.opt $F $(BUFLEN) $(NLONGLONG)
-	./lwt_read_file.opt $F 16 $(NLONG)
-	./lwt_read_buffer.opt $F $(NLONGLONG)
 	../tests/test_read_file.opt $F $(BUFLEN) $(NLONGLONG)
+	@echo "==== read file buffer 16 ===="
+	./async_read_file.opt $F 16 $N
+	./lwt_read_file.opt $F 16 $(NLONG)
 	../tests/test_read_file.opt $F 16 $(NLONGLONG)
-	./direct_read_file.opt $F $(NLONGLONG)
+	@echo "==== just buffer 1024 ===="
+	./async_read_buffer.opt $F $(NLONGLONG)
+	./lwt_read_buffer.opt $F $(NLONGLONG)
+	../tests/test_read_buffer.opt 1024 $(NLONGLONG)
 	./direct_read_buffer.opt $F $(NLONGLONG)
-	../tests/test_read_buffer.opt $F $(BUFLEN) $(NLONGLONG)
+	@echo "==== misc ===="
+	./direct_read_file.opt $F $(NLONGLONG)
+	../tests/test_read_buffer.opt $(BUFLEN) $(NLONGLONG)
 
 async_read_file.opt: async_read_file.ml
 	ocamlfind ocamlopt -thread -package async,fmt $(OCAMLOPTFLAGS) -linkall -linkpkg async_read_file.ml -o async_read_file.opt
