@@ -28,11 +28,10 @@ test: all
 	./test_read_file.opt /dev/zero 409600 10240000
 	./test_refill_file.opt /dev/zero 4096 10240000
 	./test_refill_file.opt /dev/zero 409600 10240000
-	./test_read_buffer.opt /etc/passwd 4096 1024000
+	./test_read_buffer.opt 4096 1024000
+	./test_read_buffer.opt 262144 1024000
 	./test_ab.opt direct 262144 102400000
-	./test_ab.opt direct2 262144 102400000
 	./test_ab.opt kont 262144 102400000
-	./test_ab.opt kont2 262144 102400000
 
 
 % : %.byte

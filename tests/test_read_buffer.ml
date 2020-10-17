@@ -1,7 +1,7 @@
 
 open Event
 
-let buffer = Bytes.create 1024 ;;
+let upd a b = a lor b
 
 module Kont = struct
   let return v k = k v
@@ -9,33 +9,25 @@ module Kont = struct
     _N (fun v -> _M v kont)
 end
 
-let read1 n kont =
-  Kont.return (Bytes.get buffer (n mod 1024)) kont
-
-let rec readn n kont =
+let rec readn loop ibuf acc n kont =
   if n = 0 then Kont.return n kont
   else
-    Kont.bind (Kont.return (Bytes.get buffer (n mod 1024)))
-      (fun _ -> readn (n-1)) kont
+    Kont.bind (fun kont -> JustBuffer.read_char loop ibuf kont)
+      (fun c -> readn loop ibuf (upd c acc) (n-1)) kont
 
 let report nread dur =
   let persec = Float.to_int ((Float.of_int nread) /. dur) in
   Fmt.(pf stdout "%a/sec: %d read in %f secs\n\n%!" bi_byte_size persec nread dur)
 
 let main() =
-  let fname = Sys.argv.(1) in
-  let bufsiz = int_of_string Sys.argv.(2) in
-  let toread = int_of_string Sys.argv.(3) in
+  let bufsiz = int_of_string Sys.argv.(1) in
+  let toread = int_of_string Sys.argv.(2) in
   let loop = Loop.create () in
-  let fd = Unix.openfile fname [Unix.O_RDONLY] 0o755 in
-  let ibuf = IBuffer.create ~bufsiz fd in
-  Unix.set_nonblock fd ;
+  let ibuf = JustBuffer.create ~bufsiz in
   let stime = Unix.gettimeofday() in
-  readn toread (fun unread ->
+  readn loop ibuf 0 toread (fun unread ->
       let etime = Unix.gettimeofday() in
-      report  (toread-unread) (etime -. stime) ;
-      Loop.exit loop 0) ;
-  Loop.loop loop
+      report  (toread-unread) (etime -. stime))
 
 let _ = 
 if not !Sys.interactive then
