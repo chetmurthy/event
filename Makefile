@@ -15,7 +15,7 @@ BENCHDIRS=  benchmarks
 
 
 all: sys
-	set -e; for i in $(TESTDIRS); do cd $$i; $(MAKE) all; cd ..; done
+	set -e; for i in $(TESTDIRS) $(BENCHDIRS); do cd $$i; $(MAKE) all; cd ..; done
 
 sys: plugins
 
@@ -36,8 +36,8 @@ uninstall:
 	$(OCAMLFIND) remove event || true
 
 clean::
-	set -e; for i in $(SYSDIRS) $(TESTDIRS); do cd $$i; $(MAKE) clean; cd ..; done
+	set -e; for i in $(SYSDIRS) $(TESTDIRS) $(BENCHDIRS); do cd $$i; $(MAKE) clean; cd ..; done
 	rm -rf docs local-install
 
 depend:
-	set -e; for i in $(SYSDIRS) $(TESTDIRS); do cd $$i; $(MAKE) depend; cd ..; done
+	set -e; for i in $(SYSDIRS) $(TESTDIRS) $(BENCHDIRS); do cd $$i; $(MAKE) depend; cd ..; done
