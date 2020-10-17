@@ -1,5 +1,5 @@
 
-  type t = {
+  type t = JustBuffer.t = {
     buffer : bytes ;
     mutable ofs: int ;
   }
@@ -9,11 +9,9 @@
     { buffer = Bytes.create bufsiz ; ofs = bufsiz }
 
   let rec read_char loop ibuf =
-    if ibuf.ofs < Bytes.length ibuf.buffer then
-      let c = Char.code (Bytes.unsafe_get ibuf.buffer ibuf.ofs) in
-      ibuf.ofs <- 1 + ibuf.ofs ;
-      c
-    else begin
+    if ibuf.ofs = Bytes.length ibuf.buffer then begin
       ibuf.ofs <- 0 ;
-      read_char loop ibuf
-    end
+    end ;
+    let c = Char.code (Bytes.unsafe_get ibuf.buffer ibuf.ofs) in
+    ibuf.ofs <- 1 + ibuf.ofs ;
+    c

@@ -1,8 +1,18 @@
-event.cmo iBuffer.cmo event.cmi iBuffer.cmi event.cmx iBuffer.cmx: 
+event.cmo iBuffer.cmo justBuffer.cmo directJustBuffer.cmo event.cmi iBuffer.cmi justBuffer.cmi directJustBuffer.cmi event.cmx iBuffer.cmx justBuffer.cmx directJustBuffer.cmx: 
+directJustBuffer.cmo : \
+    justBuffer.cmo
+directJustBuffer.cmx : \
+    justBuffer.cmx
 event.cmo : \
     event.cmi
 event.cmx : \
     event.cmi
 event.cmi :
-iBuffer.cmo :
-iBuffer.cmx :
+iBuffer.cmo : \
+    event.cmi
+iBuffer.cmx : \
+    event.cmx
+justBuffer.cmo : \
+    event.cmi
+justBuffer.cmx : \
+    event.cmx

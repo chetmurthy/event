@@ -29,7 +29,7 @@ let rec readn acc n : int Kont.comp =
       (fun c kont -> readn (upd c acc) (n-1) kont) kont
 
 
-let doit toread kont =
+let doit ~bufsiz toread kont =
   readn 0 toread kont
 
 end
@@ -43,20 +43,21 @@ module Kont = struct
     _N (fun v -> _M v kont)
 end
 
-let read1 n : int Kont.comp =
-  fun kont -> 
-  Kont.return (Char.code (Bytes.get buffer (n mod 1024))) kont
-
-let rec readn acc n : int Kont.comp =
+let read1 loop ibuf kont = JustBuffer.read_char loop ibuf kont
+(*
+let read1 loop ibuf kont = kont (DirectJustBuffer.read_char loop ibuf)
+*)
+let rec readn loop ibuf acc n : int Kont.comp =
   fun kont -> 
   if n = 0 then Kont.return n kont
   else
-    Kont.bind (read1 n)
-      (fun c kont -> readn (upd c acc) (n-1) kont) kont
+    Kont.bind (fun kont -> read1 loop ibuf kont)
+      (fun c kont -> readn loop ibuf (upd c acc) (n-1) kont) kont
 
 
-let doit toread kont =
-  readn 0 toread kont
+let doit loop ~bufsiz toread kont =
+  let ibuf = JustBuffer.create ~bufsiz in
+  readn loop ibuf 0 toread kont
 
 end
 
@@ -68,7 +69,7 @@ let rec readn acc n kont =
     let c = Char.code (Bytes.get buffer (n mod 1024)) in
     readn (upd c acc) (n-1) kont
 
-let doit toread kont =
+let doit ~bufsiz toread kont =
   readn 0 toread kont
 
 end
@@ -81,7 +82,8 @@ let rec readn loop ibuf acc n kont =
     let c = DirectJustBuffer.read_char loop ibuf in
     readn loop ibuf (upd c acc) (n-1) kont
 
-let doit loop ibuf toread kont =
+let doit loop ~bufsiz toread kont =
+  let ibuf = DirectJustBuffer.create ~bufsiz in
   readn loop ibuf 0 toread kont
 
 end
@@ -97,20 +99,19 @@ let main() =
   let stime = Unix.gettimeofday() in
   let loop = Loop.create () in
   if mode = "direct" then
-    DirectMode.doit toread (fun unread ->
+    DirectMode.doit ~bufsiz toread (fun unread ->
         let etime = Unix.gettimeofday() in
         report  (toread-unread) (etime -. stime))
   else if mode = "direct2" then
-    let ibuf = DirectJustBuffer.create ~bufsiz in
-    DirectMode2.doit loop ibuf toread (fun unread ->
+    DirectMode2.doit ~bufsiz loop toread (fun unread ->
         let etime = Unix.gettimeofday() in
         report  (toread-unread) (etime -. stime))
   else if mode = "kont" then
-    KontMode.doit toread (fun unread ->
+    KontMode.doit ~bufsiz toread (fun unread ->
         let etime = Unix.gettimeofday() in
         report  (toread-unread) (etime -. stime))
   else if mode = "kont2" then
-    KontMode2.doit toread (fun unread ->
+    KontMode2.doit loop ~bufsiz toread (fun unread ->
         let etime = Unix.gettimeofday() in
         report  (toread-unread) (etime -. stime))
   else ()

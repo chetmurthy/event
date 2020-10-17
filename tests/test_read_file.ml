@@ -3,14 +3,6 @@ open Event
 
 let buffer = Bytes.create 1024 ;;
 
-let read_char loop fd kont =
-  Loop.in_handler loop fd
-    (fun fd ->
-       Loop.in_cancel loop fd ;
-       let nread = Unix.read fd buffer 0 1 in
-       if nread = 0 then kont (-1)
-       else kont (Char.code (Bytes.get buffer 0)))
-
 let rec readn loop ib toread kont =
   if toread = 0 then kont toread
   else
