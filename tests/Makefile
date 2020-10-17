@@ -18,6 +18,7 @@ PACKAGES := event
 
 all: \
 	test_read_file.byte test_read_file.opt \
+	test_refill_file.byte test_refill_file.opt \
 	test_read_buffer.byte test_read_buffer.opt \
 	test_ab.byte test_ab.opt \
 
@@ -25,6 +26,8 @@ all: \
 test: all
 	./test_read_file.opt /dev/zero 4096 10240000
 	./test_read_file.opt /dev/zero 409600 10240000
+	./test_refill_file.opt /dev/zero 4096 10240000
+	./test_refill_file.opt /dev/zero 409600 10240000
 	./test_read_buffer.opt /etc/passwd 4096 1024000
 	./test_ab.opt direct 262144 102400000
 	./test_ab.opt direct2 262144 102400000
@@ -40,6 +43,14 @@ test_read_file.byte: test_read_file.cmo
 	-linkpkg -linkall $^ -o $@
 
 test_read_file.opt: test_read_file.cmx
+	$(OCAMLFIND) ocamlopt $(DEBUG) $(WARNERR) $(OCAMLOPTFLAGS) -package $(PACKAGES) \
+	-linkpkg -linkall $^ -o $@
+
+test_refill_file.byte: test_refill_file.cmo
+	$(OCAMLFIND) ocamlc $(DEBUG) $(WARNERR) -package $(PACKAGES) \
+	-linkpkg -linkall $^ -o $@
+
+test_refill_file.opt: test_refill_file.cmx
 	$(OCAMLFIND) ocamlopt $(DEBUG) $(WARNERR) $(OCAMLOPTFLAGS) -package $(PACKAGES) \
 	-linkpkg -linkall $^ -o $@
 

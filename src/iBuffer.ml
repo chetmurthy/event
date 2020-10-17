@@ -21,8 +21,13 @@ open Event
         nread
       end
 
+  let drain ibuf =
+    let cap = ibuf.lim - ibuf.ofs in
+    ibuf.ofs <- ibuf.lim ;
+    cap
+
   let read_char loop ibuf kont =
-    if ibuf.ofs = Bytes.length ibuf.buffer then
+    if ibuf.ofs = ibuf.lim then
       Loop.in_handler loop ibuf.fd 
         (fun fd ->
            Loop.in_cancel loop ibuf.fd ;
